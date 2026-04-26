@@ -1,0 +1,159 @@
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
+// ── Post Schema ──────────────────────────────────────────────
+const postSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    body: { type: String, required: true, trim: true },
+    author: { type: String, required: true, trim: true },
+    published: { type: Boolean, default: false },
+  },
+  { timestamps: true }
+);
+
+const Post = mongoose.model("Post", postSchema);
+
+// ── Post Routes ──────────────────────────────────────────────
+
+app.get("/api/posts", async (req, res) => {
+  try {
+    const posts = await Post.find().sort({ createdAt: -1 });
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
+
+app.get("/api/posts/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    res.json(post);
+  } catch (error) {
+    res.status(400).json({ error: "Invalid post ID" });
+  }
+});
+
+app.post("/api/posts", async (req, res) => {
+  try {
+    const newPost = new Post(req.body);
+    await newPost.save();
+    res.status(201).json(newPost);
+  } catch (error) {
+    res.status(400).json({ error: "Failed to create post" });
+  }
+});
+
+app.put("/api/posts/:id", async (req, res) => {
+  try {
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!updatedPost) return res.status(404).json({ error: "Post not found" });
+    res.json(updatedPost);
+  } catch (error) {
+    res.status(400).json({ error: "Failed to update post" });
+  }
+});
+
+app.delete("/api/posts/:id", async (req, res) => {
+  try {
+    const deletedPost = await Post.findByIdAndDelete(req.params.id);
+    if (!deletedPost) return res.status(404).json({ error: "Post not found" });
+    res.json({ message: "Post deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ error: "Failed to delete post" });
+  }
+});
+
+// ── In-Memory Demo Routes ────────────────────────────────────
+
+const users = [
+  { id: 1, name: "Amina", role: "student", active: true },
+  { id: 2, name: "David", role: "student", active: false },
+  { id: 3, name: "Maya", role: "mentor", active: true },
+];
+
+const products = [
+  { id: 101, name: "Notebook", price: 6.5, category: "school" },
+  { id: 102, name: "Keyboard", price: 25, category: "tech" },
+  { id: 103, name: "Pen", price: 1.5, category: "school" },
+];
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    uptimeSeconds: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get("/api/users", (req, res) => res.json(users));
+
+app.get("/api/users/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const user = users.find((u) => u.id === id);
+  if (!user) return res.status(404).json({ error: `User ${id} not found` });
+  res.json(user);
+});
+
+app.get("/api/products", (req, res) => {
+  const { category, maxPrice } = req.query;
+  let result = [...products];
+  if (category) result = result.filter((p) => p.category === category);
+  if (maxPrice) result = result.filter((p) => p.price <= Number(maxPrice));
+  res.json(result);
+});
+
+app.get("/api/dashboard", (req, res) => {
+  res.json({
+    summary: {
+      totalUsers: users.length,
+      activeUsers: users.filter((u) => u.active).length,
+    },
+    latestUser: users[users.length - 1],
+    roles: {
+      students: users.filter((u) => u.role === "student").length,
+      mentors: users.filter((u) => u.role === "mentor").length,
+    },
+  });
+});
+
+app.get("/api/announcements", (req, res) => {
+  const data = [
+    { id: "a1", title: "Welcome to Week 10" },
+    { id: "a2", title: "Submit by Sunday" },
+  ];
+  res.json({ count: data.length, data });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
+
+// ── Connect to MongoDB then start server ─────────────────────
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log("Connected to MongoDB Atlas");
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection error:", error.message);
+  });
