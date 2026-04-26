@@ -111,3 +111,225 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+mongodb://karamos473_db_user:GzRE73DoT87lxLxl@ac-xdkd2ro-shard-00-00.osnk9v8.mongodb.net:27017,ac-xdkd2ro-shard-00-01.osnk9v8.mongodb.net:27017,ac-xdkd2ro-shard-00-02.osnk9v8.mongodb.net:27017/?ssl=true&replicaSet=atlas-11g2w9-shard-0&authSource=admin&appName=Cluster0
+
+mongodb+srv://karamos473_db_user:GzRE73DoT87lxLxl@cluster0.osnk9v8.mongodb.net/?appName=Cluster0
+
+const express = require("express");
+
+const app = express();
+const PORT = 3000;
+
+// Fundamental middleware
+app.use(express.json());
+
+// Simple request logger (helps students see request flow)
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
+
+// In-memory demo data
+// (No database yet: perfect for fundamentals)
+const users = [
+    { id: 1, name: "Amina", role: "student", active: true },
+    { id: 2, name: "David", role: "student", active: false },
+    { id: 3, name: "Maya", role: "mentor", active: true }
+];
+
+const products = [
+    { id: 101, name: "Notebook", price: 8.5, category: "school" },
+    { id: 102, name: "Keyboard", price: 25, category: "tech" },
+    { id: 103, name: "Pen", price: 1.5, category: "school" }
+];
+
+// GET APIs with different shapes
+
+// 1) Plain object shape
+app.get("/api/health", (req, res) => {
+    res.json({
+        status: "ok",
+        uptimeSeconds: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString()
+    });
+});
+
+// 2) Array shape
+app.get("/api/users", (req, res) => {
+    res.json(users);
+});
+
+// 3) Basic param + object shape + error handling
+app.get("/api/users/:id", (req, res) => {
+    const id = Number(req.params.id);
+    const user = users.find((u) => u.id === id);
+
+    if (!user) {
+        return res.status(404).json({ error: `User ${id} not found` });
+    }
+
+    res.json(user);
+});
+
+// 4) Query params + filtered array shape
+app.get("/api/products", (req, res) => {
+    const { category, maxPrice } = req.query;
+
+    let result = [...products];
+
+    if (category) {
+        result = result.filter((p) => p.category === category);
+    }
+
+    if (maxPrice) {
+        result = result.filter((p) => p.price <= Number(maxPrice));
+    }
+
+    res.json(result);
+});
+
+// 5) Nested object shape (Dashboard style response)
+app.get("/api/dashboard", (req, res) => {
+    res.json({
+        summary: {
+            totalUsers: users.length,
+            activeUsers: users.filter((u) => u.active).length,
+            latestUser: users[users.length - 1],
+            roles: {
+                students: users.filter((u) => u.role === "student").length,
+                mentors: users.filter((u) => u.role === "mentor").length
+            }
+        }
+    });
+});
+
+// 6) Mixed shape example (metadata + data array)
+app.get("/api/announcements", (req, res) => {
+    const data = [
+        { id: "a1", title: "Welcome to Week 1!" },
+        { id: "a2", title: "Submit by Sunday" }
+    ];
+
+    res.json({
+        count: data.length,
+        data
+    });
+});
+
+// Basic 404 for unknown routes
+app.use((req, res) => {
+    res.status(404).json({ error: "Route not found" });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});const express = require("express");
+
+const app = express();
+const PORT = 3000;
+
+// Fundamental middleware
+app.use(express.json());
+
+// Simple request logger (helps students see request flow)
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
+
+// In-memory demo data
+// (No database yet: perfect for fundamentals)
+const users = [
+    { id: 1, name: "Amina", role: "student", active: true },
+    { id: 2, name: "David", role: "student", active: false },
+    { id: 3, name: "Maya", role: "mentor", active: true }
+];
+
+const products = [
+    { id: 101, name: "Notebook", price: 8.5, category: "school" },
+    { id: 102, name: "Keyboard", price: 25, category: "tech" },
+    { id: 103, name: "Pen", price: 1.5, category: "school" }
+];
+
+// GET APIs with different shapes
+
+// 1) Plain object shape
+app.get("/api/health", (req, res) => {
+    res.json({
+        status: "ok",
+        uptimeSeconds: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString()
+    });
+});
+
+// 2) Array shape
+app.get("/api/users", (req, res) => {
+    res.json(users);
+});
+
+// 3) Basic param + object shape + error handling
+app.get("/api/users/:id", (req, res) => {
+    const id = Number(req.params.id);
+    const user = users.find((u) => u.id === id);
+
+    if (!user) {
+        return res.status(404).json({ error: `User ${id} not found` });
+    }
+
+    res.json(user);
+});
+
+// 4) Query params + filtered array shape
+app.get("/api/products", (req, res) => {
+    const { category, maxPrice } = req.query;
+
+    let result = [...products];
+
+    if (category) {
+        result = result.filter((p) => p.category === category);
+    }
+
+    if (maxPrice) {
+        result = result.filter((p) => p.price <= Number(maxPrice));
+    }
+
+    res.json(result);
+});
+
+// 5) Nested object shape (Dashboard style response)
+app.get("/api/dashboard", (req, res) => {
+    res.json({
+        summary: {
+            totalUsers: users.length,
+            activeUsers: users.filter((u) => u.active).length,
+            latestUser: users[users.length - 1],
+            roles: {
+                students: users.filter((u) => u.role === "student").length,
+                mentors: users.filter((u) => u.role === "mentor").length
+            }
+        }
+    });
+});
+
+// 6) Mixed shape example (metadata + data array)
+app.get("/api/announcements", (req, res) => {
+    const data = [
+        { id: "a1", title: "Welcome to Week 1!" },
+        { id: "a2", title: "Submit by Sunday" }
+    ];
+
+    res.json({
+        count: data.length,
+        data
+    });
+});
+
+// Basic 404 for unknown routes
+app.use((req, res) => {
+    res.status(404).json({ error: "Route not found" });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
