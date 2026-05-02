@@ -1,0 +1,15 @@
+: Final Polish 🔴
+Time: 60 minutes
+
+Checklist before presenting:
+
+ All CRUD operations work
+ Authentication works
+ Protected routes require login
+ Error messages are user-friendly
+ Loading states are shown
+ Responsive design works
+ No console errors
+ Environment variables configured
+ Both frontend and backend deployed
+ Custom domain (optional)
